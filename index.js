@@ -10,8 +10,19 @@ process.setMaxListeners(50);
 var app = express();
 var port = 9000 
 
-var Heater = true;
+var Heater = false;
 var H2o = false;
+
+const {Gpio} = require('onoff');
+const channel2 = new Gpio('17' , 'out');
+const channel1 = new Gpio('18' ,'out');
+
+setInterval(()=> {
+    channel2.writeSync(Heater ? 0 : 1);
+    channel1.writeSync(H2o ? 0 : 1);
+    Heater = !Heater
+    H2o = !H2o
+}, 10000);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : false}))
@@ -31,6 +42,7 @@ io.on('connection' , (socket) =>{
 
     serial.on('data' , function(data) {
         var dataList = data.toString().trim().split(" ");
+        console.log(dataList)
         socket.emit("RTD" , dataList[0]);
         socket.emit("PH" , dataList[1]);
         socket.emit("DO" ,"29.5");
