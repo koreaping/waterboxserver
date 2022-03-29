@@ -1,0 +1,98 @@
+#include <Ezo_i2c.h> 
+#include <Wire.h>    
+#include <sequencer2.h> 
+#include <Ezo_i2c_util.h> 
+
+Ezo_board RTD = Ezo_board(102,"RTD");
+Ezo_board PH = Ezo_board(99,"PH");
+
+void step1();  
+void step2();
+
+Sequencer2 Seq(&step1, 1000, &step2, 0);   // step1, setp2 사이의 딜레이를 주기 위한 sequencer 함수
+
+int PH_led = 14;
+int RTD_led = 15;
+
+// RTD 센서의 달린 LED의 pin 번호를 정의함
+void setup() {
+  pinMode(PH_led, OUTPUT);                // RTD led를 출력으로 사용하기 위한 설정
+
+  Wire.begin();                            // I2C 통신 시작 함수
+  Serial.begin(9600);                      // 컴퓨터와 보드 간의 시리얼 통신 시작 함수
+  Seq.reset();                             // sequencer 함수 초기화
+}
+void loop() {
+  Seq.run();                               // 함수 반복 시작
+}
+void step1(){
+  PH.send_read_cmd();                     // 센서에 대한 데이터 읽기 모드 설정   
+}
+
+void step2(){
+  
+  char receive_buffer[32];                 // 읽어올 데이터 저장소 생성
+  //receive_and_print_response(RTD);
+  PH.receive_cmd(receive_buffer, 32);      // receive_buffer에 값이 있다면 RTD라는 변수에 센서 값을 저장
+  Serial.print("PH : ");
+  Serial.println(receive_buffer);
+  
+  //receive_and_print_reading(RTD);          // RTD 값 출력
+  if (PH.get_last_received_reading() > -1000.00) {                  // RTD LED ON/OFF
+    digitalWrite(PH_led,HIGH);                      
+  }
+  else{
+    digitalWrite(PH_led,LOW);                       
+  }    
+}
+
+
+
+/*
+#include <Ezo_i2c.h> 
+#include <Wire.h>    
+#include <sequencer2.h> 
+#include <Ezo_i2c_util.h> 
+
+Ezo_board PH = Ezo_board(99,"PH");
+
+void step1();  
+void step2();
+
+Sequencer2 Seq(&step1, 1000, &step2, 0);   // step1, setp2 사이의 딜레이를 주기 위한 sequencer 함수
+
+int RTD_led = 14;
+
+// RTD 센서의 달린 LED의 pin 번호를 정의함
+void setup() {
+  pinMode(RTD_led, OUTPUT);                // RTD led를 출력으로 사용하기 위한 설정
+
+  Wire.begin();                            // I2C 통신 시작 함수
+  Serial.begin(9600);                      // 컴퓨터와 보드 간의 시리얼 통신 시작 함수
+  Seq.reset();                             // sequencer 함수 초기화
+}
+void loop() {
+  Seq.run();                               // 함수 반복 시작
+}
+void step1(){
+  RTD.send_read_cmd();                     // 센서에 대한 데이터 읽기 모드 설정   
+}
+
+void step2(){
+  
+  char receive_buffer[32];                 // 읽어올 데이터 저장소 생성
+  //receive_and_print_response(RTD);
+  RTD.receive_cmd(receive_buffer, 32);      // receive_buffer에 값이 있다면 RTD라는 변수에 센서 값을 저장
+  
+  Serial.println(receive_buffer);
+  
+  //receive_and_print_reading(RTD);          // RTD 값 출력
+  if (RTD.get_last_received_reading() > -1000.00) {                  // RTD LED ON/OFF
+    digitalWrite(RTD_led,HIGH);                      
+  }
+  else{
+    digitalWrite(RTD_led,LOW);                       
+  }    
+  Serial.println();
+}
+*/
